@@ -1,3 +1,9 @@
+! Program: Wind Power
+! 
+! Description: Exercise from https://www.eoas.ubc.ca/courses/atsc212
+! for FORTRAN 95 practise. Code estimates power output from a wind 
+! turbine used for electric power generation. 
+! 
 ! Estimate wind power 
 
 !========= module soundmod =============
@@ -15,7 +21,7 @@ module wind_power_mod
   ! Atmospheric sounding variables 
   integer, parameter :: maxlines = 120  !max sounding lines that can be captured
   real, dimension(maxlines) :: zmsl   !array of heights MSL (m)
-  real, dimension(maxlines) :: speed  !array of wind speed (knots)
+  real, dimension(maxlines) :: speed_array  !array of wind speed (knots)
   character (len=100), dimension(maxlines) :: sounding     !holds the whole sounding
 
 
@@ -155,8 +161,8 @@ subroutine getsounding
   write(*,"(a)") "    H(m)        S(m/s) "
   write(*,"(a)") "-----------------------"
   do i = 1,20
-    read(1,fmt) zmsl(i), speed(i)
-    speedMetersPerSec = 0.5144*speed(i) 
+    read(1,fmt) zmsl(i), speed_array(i)
+    speedMetersPerSec = 0.5144*speed_array(i) 
     write(*,fmt2) zmsl(i), speedMetersPerSec
   enddo
 
