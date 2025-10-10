@@ -1,17 +1,17 @@
-# Makefile for compiling wp13.f95
+# Makefile for compiling wp??.f95
 
 # Compiler
 FC = gfortran
 
 # Compiler flags 
-# Moderate optimization
+# Moderate optimization is 2. Higher is 3
 FFLAGS = -O2
 
 # Target executable
-TARGET = runwp13
+TARGET = runwp18
 
 # Source files
-SRC = wp13.f95
+SRC = wp18.f95
 
 # Default target
 all: $(TARGET)
