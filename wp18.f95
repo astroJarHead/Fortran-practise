@@ -29,7 +29,10 @@ module wind_power_mod
   real, dimension(maxlines) :: speed_msec  !array of wind speed (m/sec) 
   real :: total_power = 0.0 ! total wind power generated in Watts, initialized to 0.0
   character (len=30) :: sounding_file        !holds name of sounding file
+  character (len=100) :: title          !holds first line of sounding file
   character (len=100), dimension(maxlines) :: sounding     !holds the whole sounding
+  ! define a CHARACTER PARAMETER variable for the output header string
+  character (LEN=*), parameter :: header1 = " height AGL (m)  wind speed (m/s)  rho (kg/m^3)  chord_len (m)   delpower (W)" 
 
 
 end module wind_power_mod
@@ -109,7 +112,6 @@ subroutine getsounding
   character (len=30) :: fmt = "(T8,F7.0,35X,F7.0)"
   character (len=30) :: fmt2 = "(F8.1,5X,F8.1)"
   character (len=100) :: line           !one line in the sounding file
-  character (len=100) :: title          !to hold first line of sounding file
   integer :: ero          !error flag for opening a file
   integer :: err          !error flag for reading a file
   integer :: i            !dummy counter variable
@@ -124,7 +126,7 @@ subroutine getsounding
   write(*,*) "    OK: Sounding file name is: ",sounding_file
 
 !Open the file  
-  open(1, file=sounding_file, status="old", action="read", iostat=ero) !open file holding the sounding
+  open(unit=1, file=sounding_file, status="old", action="read", iostat=ero) !open file holding the sounding
 !   write(*,*) "    Error flag = ", ero				!display the file-opening error flag (0 = no error)
   if (ero .ne. 0) then         !can't open the file
     write(*,*) "  Sorry.  Can't find the file: ", sounding_file
@@ -140,7 +142,7 @@ subroutine getsounding
   do             
                           !read all lines in the file
     read(1,"(a)", iostat=err) line     !try to read a line
-    if ( err .ne. 0  )  exit    !couldn't read the line, perhaps because reached end of file
+    if ( err .ne. 0  )  exit    !couldn't read the line, end of file?
     write(*,"(a)") line         !successfully read the line, so echo on screen
   enddo
   write(*,*) "======================================="
@@ -176,7 +178,7 @@ subroutine getsounding
   enddo
 
   write(*,*)
-  close(1)                     !close the sounding file
+  close(unit=1)  !close the sounding file
   
   ! Create the array of wind speeds (m/sec)
   speed_msec = 0.5144*speed_array
@@ -202,8 +204,6 @@ subroutine findpower
   real :: rect_area ! area of the rectangle = chord_len * B 
   real :: delpower ! an increment of windpower for an area of rect_area
   integer :: i   ! counting index
-  ! define a CHARACTER PARAMETER variable for the output header string
-  character (LEN=*), parameter :: header1 = " height AGL (m)  wind speed (m/s)  rho (kg/m^3)  chord_len (m)   delpower (W)" 
 
   write(*,*)
   write(*,*) "findpower:  Calculate the wind power."
@@ -266,10 +266,21 @@ subroutine saveresults
   write(*,*)
   write(*,*) " Root of sounding file is: ",sounding_rootname
   write(*,*)
-  ! create output file name via concatenation
+  ! create output file name via concatenation AND trim
   output_file = trim(sounding_rootname)//".out.txt"
   write(*,*) " Output filename will be: ",output_file
   write(*,*)
+  ! open the file for output
+  open(unit=10,FILE=output_file,FORM="FORMATTED",STATUS="REPLACE",ACTION="READWRITE")
+  write(10,*) 
+  write(10,*) title
+  write(10,*)   
+  write(10,'(A,F6.2)') " Turbine hub height AGL (m): ",zhub
+  write(10,'(A,F6.2)') " Turbine blade radius (r)  : ",r
+  write(10,*)
+  ! write the header string to the output file
+  write(10,*) header1
+  write(10,*) 
 
   ! Now get power from wind_power_mod and convert to kilowatts and megawatts
   power = total_power
@@ -284,6 +295,9 @@ subroutine saveresults
     write(*,'(A,F9.2,A)') " power = ", megaWattPower, " MegaWatts"
   endif
   
+  ! close output file
+  close(unit=10)
+
 end subroutine saveresults
 
 !=======================================
